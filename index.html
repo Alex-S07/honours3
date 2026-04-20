@@ -1,0 +1,1423 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Module 3: UI Automation with Selectors & OCR — UiPath Study Guide</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Sora:wght@300;400;600;700;800&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --bg: #0a0e1a;
+    --surface: #111827;
+    --surface2: #1a2235;
+    --border: #1e2d4a;
+    --accent: #00d4ff;
+    --accent2: #7c3aed;
+    --accent3: #10b981;
+    --accent4: #f59e0b;
+    --accent5: #ef4444;
+    --text: #e2e8f0;
+    --muted: #94a3b8;
+    --heading: #f8fafc;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Sora', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.7;
+    overflow-x: hidden;
+  }
+
+  /* SIDEBAR NAV */
+  #sidebar {
+    position: fixed;
+    left: 0; top: 0; bottom: 0;
+    width: 260px;
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    overflow-y: auto;
+    z-index: 100;
+    padding: 0;
+    transition: transform 0.3s;
+  }
+  #sidebar-logo {
+    padding: 24px 20px 16px;
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 10px;
+  }
+  #sidebar-logo .bot-icon {
+    width: 36px; height: 36px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px;
+  }
+  #sidebar-logo span {
+    font-family: 'Space Mono', monospace;
+    font-size: 12px; font-weight: 700;
+    color: var(--accent);
+    line-height: 1.3;
+  }
+  .nav-section { padding: 16px 12px 8px; }
+  .nav-section-title {
+    font-size: 10px; font-weight: 700; letter-spacing: 1.5px;
+    color: var(--muted); text-transform: uppercase; padding: 4px 8px;
+  }
+  .nav-link {
+    display: flex; align-items: center; gap: 10px;
+    padding: 8px 12px; border-radius: 8px;
+    text-decoration: none; color: var(--muted);
+    font-size: 13px; margin-bottom: 2px;
+    transition: all 0.2s;
+    cursor: pointer; border: none; background: none; width: 100%; text-align: left;
+  }
+  .nav-link:hover, .nav-link.active {
+    background: rgba(0,212,255,0.08);
+    color: var(--accent);
+  }
+  .nav-link .dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--border); flex-shrink: 0;
+    transition: background 0.2s;
+  }
+  .nav-link.active .dot, .nav-link:hover .dot { background: var(--accent); }
+
+  /* MAIN CONTENT */
+  #main {
+    margin-left: 260px;
+    min-height: 100vh;
+  }
+
+  /* HERO */
+  #hero {
+    background: linear-gradient(135deg, #0a0e1a 0%, #0f1929 40%, #111827 100%);
+    padding: 80px 60px 60px;
+    border-bottom: 1px solid var(--border);
+    position: relative; overflow: hidden;
+  }
+  #hero::before {
+    content: '';
+    position: absolute; top: -100px; right: -100px;
+    width: 500px; height: 500px;
+    background: radial-gradient(circle, rgba(0,212,255,0.06) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  #hero::after {
+    content: '';
+    position: absolute; bottom: -100px; left: 200px;
+    width: 400px; height: 400px;
+    background: radial-gradient(circle, rgba(124,58,237,0.06) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .hero-badge {
+    display: inline-block;
+    background: rgba(0,212,255,0.1);
+    border: 1px solid rgba(0,212,255,0.3);
+    color: var(--accent);
+    font-family: 'Space Mono', monospace;
+    font-size: 11px; font-weight: 700;
+    padding: 5px 14px; border-radius: 20px;
+    letter-spacing: 1px; margin-bottom: 20px;
+  }
+  #hero h1 {
+    font-size: 42px; font-weight: 800;
+    color: var(--heading); line-height: 1.15;
+    max-width: 700px; margin-bottom: 16px;
+  }
+  #hero h1 span { color: var(--accent); }
+  #hero p {
+    font-size: 16px; color: var(--muted);
+    max-width: 580px; margin-bottom: 32px;
+  }
+  .hero-stats {
+    display: flex; gap: 32px; flex-wrap: wrap;
+  }
+  .stat {
+    text-align: left;
+  }
+  .stat .num {
+    font-family: 'Space Mono', monospace;
+    font-size: 28px; font-weight: 700; color: var(--accent);
+  }
+  .stat .label { font-size: 12px; color: var(--muted); }
+
+  /* SECTIONS */
+  .section {
+    padding: 60px 60px;
+    border-bottom: 1px solid var(--border);
+  }
+  .section:last-child { border-bottom: none; }
+
+  .section-header {
+    display: flex; align-items: center; gap: 14px;
+    margin-bottom: 36px;
+  }
+  .section-icon {
+    width: 48px; height: 48px; border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px; flex-shrink: 0;
+  }
+  .icon-blue { background: rgba(0,212,255,0.12); }
+  .icon-purple { background: rgba(124,58,237,0.12); }
+  .icon-green { background: rgba(16,185,129,0.12); }
+  .icon-amber { background: rgba(245,158,11,0.12); }
+  .icon-red { background: rgba(239,68,68,0.12); }
+
+  .section-title { font-size: 28px; font-weight: 700; color: var(--heading); }
+  .section-subtitle { font-size: 14px; color: var(--muted); margin-top: 2px; }
+
+  h3 {
+    font-size: 18px; font-weight: 700;
+    color: var(--heading); margin-bottom: 12px;
+  }
+  h4 {
+    font-size: 15px; font-weight: 600;
+    color: var(--accent); margin-bottom: 8px;
+    font-family: 'Space Mono', monospace;
+  }
+  p { color: var(--muted); margin-bottom: 12px; font-size: 15px; }
+
+  /* CARDS */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 24px;
+    margin-bottom: 20px;
+    transition: border-color 0.2s, transform 0.2s;
+  }
+  .card:hover {
+    border-color: rgba(0,212,255,0.25);
+    transform: translateY(-2px);
+  }
+  .card.accent-blue { border-left: 3px solid var(--accent); }
+  .card.accent-purple { border-left: 3px solid var(--accent2); }
+  .card.accent-green { border-left: 3px solid var(--accent3); }
+  .card.accent-amber { border-left: 3px solid var(--accent4); }
+  .card.accent-red { border-left: 3px solid var(--accent5); }
+
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+
+  /* TAGS / CHIPS */
+  .tag {
+    display: inline-block;
+    padding: 3px 10px; border-radius: 20px;
+    font-size: 11px; font-weight: 600;
+    font-family: 'Space Mono', monospace;
+    margin: 3px;
+  }
+  .tag-blue { background: rgba(0,212,255,0.1); color: var(--accent); border: 1px solid rgba(0,212,255,0.2); }
+  .tag-purple { background: rgba(124,58,237,0.1); color: #a78bfa; border: 1px solid rgba(124,58,237,0.2); }
+  .tag-green { background: rgba(16,185,129,0.1); color: var(--accent3); border: 1px solid rgba(16,185,129,0.2); }
+  .tag-amber { background: rgba(245,158,11,0.1); color: var(--accent4); border: 1px solid rgba(245,158,11,0.2); }
+  .tag-red { background: rgba(239,68,68,0.1); color: var(--accent5); border: 1px solid rgba(239,68,68,0.2); }
+
+  /* CODE BLOCK */
+  .code-block {
+    background: #0d1117;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 18px 20px;
+    margin: 14px 0;
+    font-family: 'Space Mono', monospace;
+    font-size: 13px;
+    color: #a5f3fc;
+    overflow-x: auto;
+    line-height: 1.6;
+    position: relative;
+  }
+  .code-block .comment { color: #64748b; }
+  .code-block .attr { color: #fbbf24; }
+  .code-block .val { color: #34d399; }
+  .code-block .tag-xml { color: #60a5fa; }
+  .code-label {
+    font-size: 10px; font-weight: 700; letter-spacing: 1px;
+    color: var(--muted); text-transform: uppercase;
+    font-family: 'Space Mono', monospace;
+    margin-bottom: 8px;
+    display: block;
+  }
+
+  /* LIST STYLES */
+  ul.styled { list-style: none; padding: 0; }
+  ul.styled li {
+    padding: 8px 0 8px 24px;
+    position: relative; color: var(--muted);
+    font-size: 14px; border-bottom: 1px solid rgba(30,45,74,0.5);
+  }
+  ul.styled li:last-child { border-bottom: none; }
+  ul.styled li::before {
+    content: '▸'; position: absolute; left: 0;
+    color: var(--accent);
+  }
+
+  /* COMPARISON TABLE */
+  .comp-table {
+    width: 100%;
+    border-collapse: collapse;
+    border-radius: 12px;
+    overflow: hidden;
+    margin-top: 16px;
+  }
+  .comp-table th {
+    background: var(--surface2);
+    padding: 14px 18px; text-align: left;
+    font-size: 13px; font-weight: 700;
+    color: var(--accent);
+    font-family: 'Space Mono', monospace;
+    letter-spacing: 0.5px;
+    border-bottom: 2px solid var(--border);
+  }
+  .comp-table td {
+    padding: 12px 18px; font-size: 13px;
+    color: var(--text); border-bottom: 1px solid var(--border);
+    background: var(--surface);
+  }
+  .comp-table tr:last-child td { border-bottom: none; }
+  .comp-table tr:hover td { background: var(--surface2); }
+  .check { color: var(--accent3); font-weight: 700; }
+  .cross { color: var(--accent5); font-weight: 700; }
+
+  /* FLOW DIAGRAM */
+  .flow {
+    display: flex; align-items: center; flex-wrap: wrap;
+    gap: 0; margin: 20px 0;
+  }
+  .flow-step {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px; padding: 14px 18px;
+    text-align: center; min-width: 120px;
+    position: relative;
+  }
+  .flow-step .step-num {
+    font-family: 'Space Mono', monospace;
+    font-size: 10px; color: var(--accent); font-weight: 700;
+    margin-bottom: 4px;
+  }
+  .flow-step .step-label { font-size: 12px; font-weight: 600; color: var(--heading); }
+  .flow-arrow {
+    font-size: 20px; color: var(--accent);
+    padding: 0 8px; flex-shrink: 0;
+  }
+
+  /* HIGHLIGHT BOX */
+  .highlight-box {
+    background: rgba(0,212,255,0.05);
+    border: 1px solid rgba(0,212,255,0.2);
+    border-radius: 10px; padding: 18px 20px;
+    margin: 14px 0;
+  }
+  .highlight-box.warning {
+    background: rgba(245,158,11,0.05);
+    border-color: rgba(245,158,11,0.2);
+  }
+  .highlight-box.success {
+    background: rgba(16,185,129,0.05);
+    border-color: rgba(16,185,129,0.2);
+  }
+  .highlight-box.danger {
+    background: rgba(239,68,68,0.05);
+    border-color: rgba(239,68,68,0.2);
+  }
+  .box-title {
+    font-size: 12px; font-weight: 700;
+    letter-spacing: 1px; text-transform: uppercase;
+    margin-bottom: 8px; font-family: 'Space Mono', monospace;
+  }
+  .box-title.blue { color: var(--accent); }
+  .box-title.amber { color: var(--accent4); }
+  .box-title.green { color: var(--accent3); }
+  .box-title.red { color: var(--accent5); }
+  .highlight-box p { margin-bottom: 0; }
+
+  /* FLASHCARDS */
+  #flashcards { padding: 60px; }
+  .fc-header { margin-bottom: 32px; }
+  .fc-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+  .fc {
+    perspective: 1000px; height: 160px; cursor: pointer;
+  }
+  .fc-inner {
+    position: relative; width: 100%; height: 100%;
+    transform-style: preserve-3d;
+    transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .fc.flipped .fc-inner { transform: rotateY(180deg); }
+  .fc-front, .fc-back {
+    position: absolute; inset: 0;
+    backface-visibility: hidden;
+    border-radius: 12px; padding: 20px;
+    display: flex; flex-direction: column; justify-content: center;
+    border: 1px solid var(--border);
+  }
+  .fc-front {
+    background: var(--surface);
+    align-items: center; text-align: center;
+  }
+  .fc-back {
+    background: var(--surface2);
+    transform: rotateY(180deg);
+    border-color: rgba(0,212,255,0.2);
+  }
+  .fc-question {
+    font-size: 14px; font-weight: 600; color: var(--heading);
+    margin-bottom: 8px;
+  }
+  .fc-hint { font-size: 11px; color: var(--muted); font-family: 'Space Mono', monospace; }
+  .fc-answer { font-size: 13px; color: var(--text); line-height: 1.6; }
+  .fc-label {
+    font-size: 10px; font-weight: 700; letter-spacing: 1px;
+    font-family: 'Space Mono', monospace; margin-bottom: 10px;
+    color: var(--accent);
+  }
+
+  /* QUIZ */
+  #quiz { padding: 60px; border-bottom: 1px solid var(--border); }
+  .quiz-q { margin-bottom: 28px; }
+  .quiz-q p { font-size: 16px; color: var(--heading); margin-bottom: 14px; font-weight: 600; }
+  .quiz-options { display: flex; flex-direction: column; gap: 8px; }
+  .quiz-opt {
+    padding: 12px 18px; border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text); cursor: pointer; font-size: 14px;
+    text-align: left; width: 100%;
+    transition: all 0.2s; font-family: 'Sora', sans-serif;
+  }
+  .quiz-opt:hover { border-color: var(--accent); color: var(--heading); }
+  .quiz-opt.correct { background: rgba(16,185,129,0.15); border-color: var(--accent3); color: var(--accent3); }
+  .quiz-opt.wrong { background: rgba(239,68,68,0.12); border-color: var(--accent5); color: var(--accent5); }
+  .quiz-feedback { font-size: 13px; margin-top: 8px; padding: 8px 14px; border-radius: 6px; display: none; }
+  .quiz-feedback.show { display: block; }
+  .quiz-feedback.correct { background: rgba(16,185,129,0.1); color: var(--accent3); }
+  .quiz-feedback.wrong { background: rgba(239,68,68,0.1); color: var(--accent5); }
+  .quiz-score {
+    display: none; text-align: center; padding: 32px;
+    background: var(--surface2); border-radius: 14px;
+    border: 1px solid var(--border); margin-top: 24px;
+  }
+  .quiz-score.show { display: block; }
+  .score-num { font-size: 56px; font-weight: 800; color: var(--accent); font-family: 'Space Mono', monospace; }
+  .btn {
+    display: inline-block; padding: 12px 28px; border-radius: 8px;
+    background: var(--accent); color: #000;
+    font-weight: 700; font-size: 14px; cursor: pointer;
+    border: none; font-family: 'Sora', monospace;
+    transition: opacity 0.2s; margin-top: 16px;
+  }
+  .btn:hover { opacity: 0.85; }
+  .btn.outline {
+    background: transparent; color: var(--accent);
+    border: 1px solid var(--accent);
+  }
+
+  /* TOOLTIP */
+  [data-tip] { position: relative; cursor: help; }
+  [data-tip]:hover::after {
+    content: attr(data-tip);
+    position: absolute; bottom: 100%; left: 50%;
+    transform: translateX(-50%);
+    background: #1e293b; color: var(--text);
+    font-size: 12px; padding: 6px 12px; border-radius: 6px;
+    white-space: nowrap; z-index: 10;
+    border: 1px solid var(--border);
+    margin-bottom: 4px;
+  }
+
+  /* PROGRESS BAR */
+  .progress-section {
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 12px; padding: 20px; margin-bottom: 20px;
+  }
+  .progress-label {
+    display: flex; justify-content: space-between;
+    font-size: 13px; color: var(--text); margin-bottom: 8px; font-weight: 600;
+  }
+  .progress-bar {
+    height: 8px; background: var(--border); border-radius: 4px; overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%; border-radius: 4px;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    transition: width 1s ease;
+  }
+
+  /* SCROLLBAR */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+  /* MOBILE TOGGLE */
+  #menu-toggle {
+    display: none; position: fixed; top: 16px; left: 16px;
+    z-index: 200; background: var(--surface); border: 1px solid var(--border);
+    border-radius: 8px; width: 40px; height: 40px;
+    align-items: center; justify-content: center;
+    cursor: pointer; color: var(--accent); font-size: 18px;
+  }
+
+  @media (max-width: 900px) {
+    #sidebar { transform: translateX(-100%); }
+    #sidebar.open { transform: translateX(0); }
+    #main { margin-left: 0; }
+    #menu-toggle { display: flex; }
+    .section, #flashcards, #quiz { padding: 40px 24px; }
+    #hero { padding: 60px 24px 40px; }
+    #hero h1 { font-size: 28px; }
+    .grid-2, .grid-3 { grid-template-columns: 1fr; }
+    .fc-grid { grid-template-columns: 1fr; }
+    .hero-stats { gap: 20px; }
+    .flow { flex-direction: column; }
+    .flow-arrow { transform: rotate(90deg); }
+  }
+
+  /* VISUAL DIAGRAM */
+  .diagram {
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 14px; padding: 28px; margin: 16px 0;
+    display: flex; flex-direction: column; align-items: center;
+    gap: 12px;
+  }
+  .diagram-title {
+    font-size: 12px; font-weight: 700; letter-spacing: 1px;
+    text-transform: uppercase; color: var(--muted); align-self: flex-start;
+    font-family: 'Space Mono', monospace;
+  }
+  .diag-row { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; justify-content: center; }
+  .diag-box {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 8px; padding: 10px 16px; font-size: 13px;
+    font-weight: 600; color: var(--heading); text-align: center; min-width: 100px;
+  }
+  .diag-box.highlight {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: rgba(0,212,255,0.06);
+  }
+  .diag-box.purple {
+    border-color: var(--accent2);
+    color: #a78bfa;
+    background: rgba(124,58,237,0.06);
+  }
+  .diag-box.green {
+    border-color: var(--accent3);
+    color: var(--accent3);
+    background: rgba(16,185,129,0.06);
+  }
+  .diag-arrow { color: var(--muted); font-size: 18px; }
+  .diag-connector {
+    width: 2px; height: 24px; background: var(--border); margin: 0 auto;
+  }
+</style>
+</head>
+<body>
+
+<button id="menu-toggle" onclick="document.getElementById('sidebar').classList.toggle('open')">☰</button>
+
+<!-- SIDEBAR -->
+<nav id="sidebar">
+  <div id="sidebar-logo">
+    <div class="bot-icon">🤖</div>
+    <span>UiPath<br/>Module 3</span>
+  </div>
+
+  <div class="nav-section">
+    <div class="nav-section-title">Overview</div>
+    <button class="nav-link active" onclick="scrollTo('hero')"><span class="dot"></span>Introduction</button>
+    <button class="nav-link" onclick="scrollTo('unit1')"><span class="dot"></span>Unit 1 — UI Elements</button>
+    <button class="nav-link" onclick="scrollTo('unit2')"><span class="dot"></span>Unit 2 — Selectors</button>
+    <button class="nav-link" onclick="scrollTo('unit3')"><span class="dot"></span>Unit 3 — Advanced Automation</button>
+    <button class="nav-link" onclick="scrollTo('unit4')"><span class="dot"></span>Unit 4 — Screen Scraping & OCR</button>
+  </div>
+
+  <div class="nav-section">
+    <div class="nav-section-title">Practice</div>
+    <button class="nav-link" onclick="scrollTo('flashcards')"><span class="dot"></span>Flashcards</button>
+    <button class="nav-link" onclick="scrollTo('quiz')"><span class="dot"></span>Quiz</button>
+    <button class="nav-link" onclick="scrollTo('summary')"><span class="dot"></span>Quick Summary</button>
+  </div>
+</nav>
+
+<!-- MAIN -->
+<div id="main">
+
+  <!-- HERO -->
+  <section id="hero">
+    <div class="hero-badge">📘 RPA · UiPath Studio · Module 3</div>
+    <h1>UI Automation with<br/><span>Selectors & OCR</span></h1>
+    <p>A complete beginner-friendly study guide covering element identification, selectors, dynamic UI handling, screen scraping, and OCR-based data extraction.</p>
+    <div class="hero-stats">
+      <div class="stat"><div class="num">4</div><div class="label">Units</div></div>
+      <div class="stat"><div class="num">15+</div><div class="label">Key Concepts</div></div>
+      <div class="stat"><div class="num">20</div><div class="label">Flashcards</div></div>
+      <div class="stat"><div class="num">10</div><div class="label">Quiz Questions</div></div>
+    </div>
+  </section>
+
+  <!-- UNIT 1 -->
+  <section class="section" id="unit1">
+    <div class="section-header">
+      <div class="section-icon icon-blue">🖱️</div>
+      <div>
+        <div class="section-title">Unit 1: UI Elements & Element Identification</div>
+        <div class="section-subtitle">Understanding what a bot "sees" and how it finds things on screen</div>
+      </div>
+    </div>
+
+    <div class="highlight-box">
+      <div class="box-title blue">💡 Beginner Analogy</div>
+      <p>Imagine you're teaching someone to use a computer over the phone. You'd say "click the blue button that says Submit" or "type your name in the box next to the label Username." UiPath does the same — it identifies buttons, text boxes, and labels by their properties so a robot can click or type in the right place.</p>
+    </div>
+
+    <div class="grid-2">
+      <div>
+        <h3>What are UI Elements?</h3>
+        <p>UI elements are the visible, interactive parts of any software application — the things you see on screen and interact with using a mouse or keyboard.</p>
+        <ul class="styled">
+          <li><strong>Input elements</strong> — Text boxes, password fields</li>
+          <li><strong>Action elements</strong> — Buttons (Submit, Login, OK)</li>
+          <li><strong>Selection elements</strong> — Dropdowns, checkboxes, radio buttons</li>
+          <li><strong>Display elements</strong> — Labels, tables, messages</li>
+        </ul>
+      </div>
+      <div>
+        <h3>Role in UiPath Automation</h3>
+        <p>UI elements are the <em>targets</em> of automation. Every action your bot performs — clicking a button, typing text, reading data — happens through a UI element.</p>
+        <div class="progress-section">
+          <div class="progress-label"><span>Click activities</span><span>100%</span></div>
+          <div class="progress-bar"><div class="progress-fill" style="width:100%"></div></div>
+        </div>
+        <div class="progress-section">
+          <div class="progress-label"><span>Type Into activities</span><span>100%</span></div>
+          <div class="progress-bar"><div class="progress-fill" style="width:100%"></div></div>
+        </div>
+        <div class="progress-section">
+          <div class="progress-label"><span>Data extraction</span><span>80%</span></div>
+          <div class="progress-bar"><div class="progress-fill" style="width:80%; background: linear-gradient(90deg, var(--accent3), var(--accent))"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <h3 style="margin-top:32px">Element Identification</h3>
+    <p>Element identification is the process of <strong>finding and uniquely recognizing</strong> a UI element so the bot can interact with it correctly every time, even if the screen changes slightly.</p>
+
+    <div class="diagram">
+      <span class="diagram-title">How UiPath finds an element</span>
+      <div class="diag-row">
+        <div class="diag-box highlight">Bot needs to click a button</div>
+        <div class="diag-arrow">→</div>
+        <div class="diag-box">Reads selector (XML attributes)</div>
+        <div class="diag-arrow">→</div>
+        <div class="diag-box purple">Searches application UI</div>
+        <div class="diag-arrow">→</div>
+        <div class="diag-box green">Finds matching element</div>
+        <div class="diag-arrow">→</div>
+        <div class="diag-box highlight">Performs action ✓</div>
+      </div>
+    </div>
+
+    <div class="grid-3">
+      <div class="card accent-blue">
+        <h4>Selectors</h4>
+        <p style="margin:0">Primary method — XML-based path to the element. Like a GPS address for UI elements.</p>
+      </div>
+      <div class="card accent-purple">
+        <h4>Attributes</h4>
+        <p style="margin:0">Properties like id, name, class that describe and uniquely identify each element.</p>
+      </div>
+      <div class="card accent-green">
+        <h4>UI Explorer</h4>
+        <p style="margin:0">UiPath's built-in tool to inspect any element on screen and build/edit its selector.</p>
+      </div>
+    </div>
+
+    <h3 style="margin-top:32px">🔍 UI Explorer — Deep Dive</h3>
+    <p>UI Explorer is UiPath's dedicated inspection tool. Think of it like the browser DevTools (right-click → Inspect) but for any desktop or web application.</p>
+    <div class="grid-2">
+      <div class="card accent-blue">
+        <h4>Main Panels</h4>
+        <ul class="styled">
+          <li><strong>Visual Tree</strong> — Shows parent-child structure of the entire app</li>
+          <li><strong>Properties Panel</strong> — All attributes of the selected element</li>
+          <li><strong>Selector Editor</strong> — Modify the XML selector directly</li>
+          <li><strong>Highlight</strong> — Draws a red box around the selected element on screen</li>
+        </ul>
+      </div>
+      <div class="card accent-green">
+        <h4>What you can do</h4>
+        <ul class="styled">
+          <li>Inspect any element in any open application</li>
+          <li>Build and refine selectors automatically</li>
+          <li>Validate that a selector finds the right element</li>
+          <li>Edit XML directly for fine-tuning</li>
+          <li>Test automation compatibility before writing code</li>
+        </ul>
+      </div>
+    </div>
+
+    <h3 style="margin-top:32px">Attributes of UI Elements</h3>
+    <p>Attributes are like the "identity card" of a UI element. UiPath reads these to build selectors.</p>
+    <div class="card">
+      <table class="comp-table" style="margin-top:0">
+        <tr><th>Attribute</th><th>Meaning</th><th>Reliability</th></tr>
+        <tr><td><code style="color:var(--accent)">id</code></td><td>Unique identifier of the element</td><td><span class="tag tag-green">Most Reliable</span></td></tr>
+        <tr><td><code style="color:var(--accent)">name</code></td><td>Logical name assigned by developer</td><td><span class="tag tag-green">Reliable</span></td></tr>
+        <tr><td><code style="color:var(--accent)">class</code></td><td>CSS class / type category</td><td><span class="tag tag-blue">Moderate</span></td></tr>
+        <tr><td><code style="color:var(--accent)">title</code></td><td>Visible text / tooltip</td><td><span class="tag tag-blue">Moderate</span></td></tr>
+        <tr><td><code style="color:var(--accent)">tag</code></td><td>HTML tag (INPUT, BUTTON, etc.)</td><td><span class="tag tag-amber">Context-Dependent</span></td></tr>
+        <tr><td><code style="color:var(--accent)">idx</code></td><td>Index among duplicate elements</td><td><span class="tag tag-red">Avoid if possible</span></td></tr>
+      </table>
+    </div>
+
+    <span class="code-label">Example Selector XML</span>
+    <div class="code-block">
+      <span class="comment">&lt;!-- This tells UiPath: find an INPUT field with id='username' on a web page --&gt;</span><br/>
+      <span class="tag-xml">&lt;webctrl</span> <span class="attr">id</span>=<span class="val">'username'</span> <span class="attr">name</span>=<span class="val">'user'</span> <span class="attr">tag</span>=<span class="val">'INPUT'</span> <span class="tag-xml">/&gt;</span>
+    </div>
+    <div class="highlight-box warning">
+      <div class="box-title amber">⚠️ Key Rule</div>
+      <p>Always prefer <strong>stable attributes</strong> like <code>id</code> and <code>name</code>. Avoid attributes that change dynamically (e.g., auto-generated IDs like <code>btn_39821</code>) — they will break your automation!</p>
+    </div>
+  </section>
+
+  <!-- UNIT 2 -->
+  <section class="section" id="unit2">
+    <div class="section-header">
+      <div class="section-icon icon-purple">🎯</div>
+      <div>
+        <div class="section-title">Unit 2: Selectors</div>
+        <div class="section-subtitle">The backbone of every UiPath automation workflow</div>
+      </div>
+    </div>
+
+    <div class="highlight-box">
+      <div class="box-title blue">💡 Beginner Analogy</div>
+      <p>A selector is like a <strong>postal address</strong> for a UI element. Just as a letter needs a country → city → street → house number to arrive at the right place, a selector contains a hierarchy: window → container → specific element. The more precise the address, the more reliably the letter (or bot action) arrives!</p>
+    </div>
+
+    <h3>What is a Selector?</h3>
+    <p>Selectors are <strong>XML-based strings</strong> that UiPath uses to uniquely identify and locate a UI element on screen. Every activity that interacts with an element (Click, Type Into, etc.) uses a selector internally.</p>
+
+    <span class="code-label">Basic Selector Structure</span>
+    <div class="code-block">
+      <span class="comment">&lt;!-- Parent window --&gt;</span><br/>
+      <span class="tag-xml">&lt;wnd</span> <span class="attr">title</span>=<span class="val">'Login Page'</span> <span class="attr">cls</span>=<span class="val">'Chrome_WidgetWin_1'</span><span class="tag-xml">&gt;</span><br/>
+      &nbsp;&nbsp;<span class="comment">&lt;!-- Target element inside the window --&gt;</span><br/>
+      &nbsp;&nbsp;<span class="tag-xml">&lt;webctrl</span> <span class="attr">id</span>=<span class="val">'username'</span> <span class="attr">tag</span>=<span class="val">'INPUT'</span> <span class="tag-xml">/&gt;</span><br/>
+      <span class="tag-xml">&lt;/wnd&gt;</span>
+    </div>
+
+    <h3 style="margin-top:32px">Types of Selectors</h3>
+    <div class="grid-2">
+      <div class="card accent-blue">
+        <h4>Static Selectors</h4>
+        <p>Use <strong>fixed, unchanging</strong> attribute values. Work perfectly for applications where the UI never changes — like most desktop apps.</p>
+        <ul class="styled" style="margin-top:8px">
+          <li>Values do not change during execution</li>
+          <li>Most reliable type</li>
+          <li>Easiest to create (often auto-generated)</li>
+          <li>Best for: stable internal applications</li>
+        </ul>
+        <div class="code-block" style="margin-top:12px">
+          <span class="tag-xml">&lt;webctrl</span> <span class="attr">id</span>=<span class="val">'loginBtn'</span> <span class="tag-xml">/&gt;</span>
+        </div>
+      </div>
+      <div class="card accent-amber">
+        <h4>Dynamic Selectors</h4>
+        <p>Used when UI element attributes <strong>change at runtime</strong> — common in modern web applications, ERPs, and CRMs.</p>
+        <ul class="styled" style="margin-top:8px">
+          <li>Use variables to replace changing values</li>
+          <li>Use wildcards to match patterns</li>
+          <li>Essential for web apps</li>
+          <li>Require manual fine-tuning</li>
+        </ul>
+        <div class="code-block" style="margin-top:12px">
+          <span class="comment">&lt;!-- Variable in selector --&gt;</span><br/>
+          <span class="tag-xml">&lt;webctrl</span> <span class="attr">id</span>=<span class="val">'"btn_" + rowId'</span> <span class="tag-xml">/&gt;</span>
+        </div>
+      </div>
+    </div>
+
+    <h3 style="margin-top:32px">🃏 Wildcards Explained</h3>
+    <p>Wildcards are special symbols that let you match patterns instead of exact values — essential when part of an attribute changes each time.</p>
+
+    <div class="grid-2">
+      <div class="card accent-green">
+        <h4>Asterisk Wildcard: *</h4>
+        <p>Matches <strong>zero or more characters</strong> of any kind.</p>
+        <div class="code-block">
+          <span class="comment">&lt;!-- Matches: user_001, user_abc, user_anything --&gt;</span><br/>
+          <span class="tag-xml">&lt;webctrl</span> <span class="attr">id</span>=<span class="val">'user_*'</span> <span class="tag-xml">/&gt;</span>
+        </div>
+        <p style="font-size:13px; margin-top:8px">Use case: Window title changes from "File1 – Notepad" to "File2 – Notepad"</p>
+        <div class="code-block">
+          <span class="tag-xml">&lt;wnd</span> <span class="attr">title</span>=<span class="val">'* – Notepad'</span> <span class="tag-xml">/&gt;</span>
+        </div>
+      </div>
+      <div class="card accent-purple">
+        <h4>Question Mark Wildcard: ?</h4>
+        <p>Matches <strong>exactly one character</strong>.</p>
+        <div class="code-block">
+          <span class="comment">&lt;!-- Matches: btn1, btn2, btn9 (NOT btn10) --&gt;</span><br/>
+          <span class="tag-xml">&lt;webctrl</span> <span class="attr">id</span>=<span class="val">'btn?'</span> <span class="tag-xml">/&gt;</span>
+        </div>
+        <p style="font-size:13px; margin-top:8px">Less commonly used than *, but useful for single-character variations like numbered buttons.</p>
+      </div>
+    </div>
+
+    <h3 style="margin-top:32px">Full vs Partial Selectors</h3>
+    <div class="grid-2">
+      <div class="card accent-blue">
+        <h4>Full Selector</h4>
+        <p>Contains the <strong>complete hierarchy</strong> from top-level window down to the target element. Used in <em>standalone activities</em>.</p>
+        <div class="code-block">
+          <span class="tag-xml">&lt;wnd</span> <span class="attr">app</span>=<span class="val">'chrome.exe'</span><span class="tag-xml">&gt;</span><br/>
+          &nbsp;&nbsp;<span class="tag-xml">&lt;webctrl</span> <span class="attr">id</span>=<span class="val">'submit'</span><span class="tag-xml">/&gt;</span><br/>
+          <span class="tag-xml">&lt;/wnd&gt;</span>
+        </div>
+      </div>
+      <div class="card accent-green">
+        <h4>Partial Selector</h4>
+        <p>Contains <strong>only the target element</strong> info — used <em>inside containers</em> like "Attach Window" or "Open Browser" which already specify the parent.</p>
+        <div class="code-block">
+          <span class="comment">&lt;!-- Inside "Open Browser" container --&gt;</span><br/>
+          <span class="tag-xml">&lt;webctrl</span> <span class="attr">id</span>=<span class="val">'submit'</span><span class="tag-xml">/&gt;</span>
+        </div>
+      </div>
+    </div>
+
+    <h3 style="margin-top:32px">Selector Validation & Editing</h3>
+    <p>Before running your automation, always validate your selectors to ensure they correctly identify the intended element.</p>
+    <div class="card">
+      <h4>Validation Methods</h4>
+      <ul class="styled">
+        <li>Click <strong>Highlight</strong> in UI Explorer — draws a red rectangle around the found element</li>
+        <li>Click <strong>Validate</strong> button — shows green (found) or red (not found) status</li>
+        <li>Run the workflow and check if the correct element is targeted</li>
+      </ul>
+    </div>
+    <div class="card accent-amber" style="margin-top:16px">
+      <h4>Editing Best Practices</h4>
+      <ul class="styled">
+        <li>Remove unnecessary attributes — simpler is more stable</li>
+        <li>Replace dynamic values with wildcards</li>
+        <li>Prefer meaningful attributes (id, name) over positional ones (idx)</li>
+        <li>Avoid deeply nested hierarchies — shorten where possible</li>
+        <li>Test in different environments (dev, test, production)</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- UNIT 3 -->
+  <section class="section" id="unit3">
+    <div class="section-header">
+      <div class="section-icon icon-amber">⚙️</div>
+      <div>
+        <div class="section-title">Unit 3: Advanced UI Automation</div>
+        <div class="section-subtitle">Handling dynamic elements, anchors, and fine-tuning for the real world</div>
+      </div>
+    </div>
+
+    <div class="highlight-box">
+      <div class="box-title blue">💡 Why "Advanced"?</div>
+      <p>Basic selectors work great for stable applications. But real-world apps — websites, ERPs, cloud platforms — change their UI constantly. This unit teaches you to build automations that <strong>adapt</strong> to those changes automatically.</p>
+    </div>
+
+    <h3>Dynamic UI Elements</h3>
+    <p>Dynamic UI elements are elements that <strong>change their properties</strong> between executions. This is the most common cause of broken automations.</p>
+    <div class="grid-3">
+      <div class="card accent-red">
+        <h4>Auto-Generated IDs</h4>
+        <p style="margin:0;font-size:13px">Web frameworks generate IDs like <code>btn_3921</code> that change each page load.</p>
+      </div>
+      <div class="card accent-amber">
+        <h4>Dynamic Tables</h4>
+        <p style="margin:0;font-size:13px">Table rows and cells get different indices as data changes.</p>
+      </div>
+      <div class="card accent-purple">
+        <h4>Changing Positions</h4>
+        <p style="margin:0;font-size:13px">Elements shift position due to responsive design or added content above them.</p>
+      </div>
+    </div>
+
+    <h3 style="margin-top:32px">Handling Dynamic UI — 3 Techniques</h3>
+
+    <div class="card accent-blue" style="margin-bottom:16px">
+      <h4>Technique 1: Wildcards in Selectors</h4>
+      <p>Replace the changing part of an attribute with <code>*</code> or <code>?</code> wildcards.</p>
+      <div class="code-block">
+        <span class="comment">&lt;!-- BEFORE: breaks if ID changes --&gt;</span><br/>
+        <span class="tag-xml">&lt;webctrl</span> <span class="attr">id</span>=<span class="val">'product_row_3829'</span> <span class="tag-xml">/&gt;</span><br/><br/>
+        <span class="comment">&lt;!-- AFTER: works for any row ID --&gt;</span><br/>
+        <span class="tag-xml">&lt;webctrl</span> <span class="attr">id</span>=<span class="val">'product_row_*'</span> <span class="tag-xml">/&gt;</span>
+      </div>
+    </div>
+
+    <div class="card accent-purple" style="margin-bottom:16px">
+      <h4>Technique 2: Dynamic Selectors with Variables</h4>
+      <p>Store changing values in a UiPath variable and inject it into the selector at runtime.</p>
+      <div class="code-block">
+        <span class="comment">&lt;!-- rowNumber is a variable set at runtime --&gt;</span><br/>
+        <span class="tag-xml">&lt;webctrl</span> <span class="attr">id</span>=<span class="val">'"row_" + rowNumber.ToString()'</span> <span class="tag-xml">/&gt;</span>
+      </div>
+      <p style="font-size:13px; margin-top:8px">Use CTRL+K inside the Selector Editor to create a variable directly in the selector field.</p>
+    </div>
+
+    <div class="card accent-green">
+      <h4>Technique 3: Anchor-Based Automation ⚓</h4>
+      <p>When a target element has no stable attributes, use a <strong>nearby stable element</strong> (the anchor) to locate it by proximity.</p>
+      <div class="diagram" style="padding:16px">
+        <div class="diag-row">
+          <div class="diag-box highlight">Label: "Username"<br/><span style="font-size:11px;color:var(--muted)">(stable anchor)</span></div>
+          <div class="diag-arrow">→ points to →</div>
+          <div class="diag-box green">Input Field<br/><span style="font-size:11px;color:var(--muted)">(unstable target)</span></div>
+        </div>
+      </div>
+      <p style="font-size:13px">The bot finds the label "Username" (which never changes), then looks for the input field <em>next to it</em>. Even if the input field's ID changes, the anchor stays the same.</p>
+      <div class="highlight-box success" style="margin-top:12px; margin-bottom:0">
+        <div class="box-title green">✅ Real-World Example</div>
+        <p style="margin:0;font-size:13px">A billing form has two identical text boxes for "billing address" and "shipping address." Their IDs are the same! Use the visible labels as anchors to tell them apart.</p>
+      </div>
+    </div>
+
+    <h3 style="margin-top:32px">Selector Fine-Tuning</h3>
+    <p>Fine-tuning is the process of <strong>improving a selector</strong> to make it work across all environments reliably, without being so rigid that minor UI changes break it.</p>
+
+    <div class="grid-2">
+      <div class="card">
+        <h4>Reliability Checklist</h4>
+        <ul class="styled">
+          <li>✅ Uses stable attributes (id, name, automationId)</li>
+          <li>✅ No unnecessary attributes in the chain</li>
+          <li>✅ Wildcards replace dynamic values</li>
+          <li>✅ Validates in development AND production</li>
+          <li>✅ Short, simple hierarchy</li>
+          <li>❌ No idx unless value is very small (1 or 2)</li>
+          <li>❌ No fully-wildcard attributes (name="*" — remove instead)</li>
+        </ul>
+      </div>
+      <div class="card accent-blue">
+        <h4>Why Reliability Matters</h4>
+        <p>A fragile selector means:</p>
+        <ul class="styled">
+          <li>Bot fails silently in production</li>
+          <li>Hours of debugging time wasted</li>
+          <li>Business processes halt unexpectedly</li>
+          <li>Loss of trust in automation</li>
+        </ul>
+        <div class="highlight-box" style="margin-top:12px;margin-bottom:0;padding:12px">
+          <p style="margin:0; font-size:13px">A reliable selector finds the same element every time — in dev, test, and production, regardless of who is logged in.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- UNIT 4 -->
+  <section class="section" id="unit4">
+    <div class="section-header">
+      <div class="section-icon icon-green">📄</div>
+      <div>
+        <div class="section-title">Unit 4: Screen Scraping & OCR</div>
+        <div class="section-subtitle">Extracting text and data from screens, images, and scanned documents</div>
+      </div>
+    </div>
+
+    <div class="highlight-box">
+      <div class="box-title blue">💡 What is Screen Scraping?</div>
+      <p>Screen scraping is like taking a photo of a screen and then reading all the text from it. It's used when you can't simply "get" a value from a database — you need to <strong>read it directly from what's displayed</strong> in the application.</p>
+    </div>
+
+    <h3>Screen Scraping Methods</h3>
+    <p>UiPath provides 3 methods to extract text from UI. Each works differently and suits different situations:</p>
+
+    <div class="grid-3">
+      <div class="card accent-blue">
+        <h4>⚡ Full Text</h4>
+        <span class="tag tag-blue">Fastest</span>
+        <span class="tag tag-green">Background</span>
+        <ul class="styled" style="margin-top:12px">
+          <li>Hooks directly into the rendering engine</li>
+          <li>Extracts all text at once</li>
+          <li>Works in background (no visible window needed)</li>
+          <li>Does NOT preserve layout/formatting</li>
+          <li>Not supported in all apps</li>
+        </ul>
+        <p style="font-size:12px; margin-top:8px; color: var(--accent)">Best when: you only need raw text, speed matters</p>
+      </div>
+      <div class="card accent-purple">
+        <h4>🖥️ Native</h4>
+        <span class="tag tag-purple">Medium Speed</span>
+        <span class="tag tag-amber">Structure</span>
+        <ul class="styled" style="margin-top:12px">
+          <li>Works with most desktop applications</li>
+          <li>Preserves text position and layout</li>
+          <li>Usually needs app in foreground</li>
+          <li>Good accuracy</li>
+          <li>Better than Full Text for positional data</li>
+        </ul>
+        <p style="font-size:12px; margin-top:8px; color: #a78bfa">Best when: position/format of text matters</p>
+      </div>
+      <div class="card accent-amber">
+        <h4>📷 OCR</h4>
+        <span class="tag tag-amber">Slower</span>
+        <span class="tag tag-red">Image-Based</span>
+        <ul class="styled" style="margin-top:12px">
+          <li>Works on screenshots, images, scanned docs</li>
+          <li>Works in Citrix / virtual environments</li>
+          <li>Accuracy depends on image quality</li>
+          <li>Not 100% accurate — always verify critical output</li>
+          <li>Last resort when other methods fail</li>
+        </ul>
+        <p style="font-size:12px; margin-top:8px; color: var(--accent4)">Best when: text is in an image, Citrix, PDF scan</p>
+      </div>
+    </div>
+
+    <h3 style="margin-top:32px">Full Text vs Native — Comparison Table</h3>
+    <table class="comp-table">
+      <tr>
+        <th>Feature</th>
+        <th>Full Text Scraping</th>
+        <th>Native Scraping</th>
+      </tr>
+      <tr>
+        <td>Speed</td>
+        <td>⚡ Very fast</td>
+        <td>🐢 Medium</td>
+      </tr>
+      <tr>
+        <td>Accuracy</td>
+        <td>Very high (for text)</td>
+        <td>High</td>
+      </tr>
+      <tr>
+        <td>Background Execution</td>
+        <td><span class="check">✔ Works in background</span></td>
+        <td><span class="cross">✘ Usually needs foreground</span></td>
+      </tr>
+      <tr>
+        <td>Text Extraction Type</td>
+        <td>Entire text block at once</td>
+        <td>Text with structure / position</td>
+      </tr>
+      <tr>
+        <td>Preserves Formatting</td>
+        <td><span class="cross">✘ Does NOT preserve layout</span></td>
+        <td><span class="check">✔ Preserves layout</span></td>
+      </tr>
+      <tr>
+        <td>Supported Applications</td>
+        <td>Limited (not all apps)</td>
+        <td>Works with most desktop apps</td>
+      </tr>
+      <tr>
+        <td>Best Use Case</td>
+        <td>When only plain text needed</td>
+        <td>When position/format matters</td>
+      </tr>
+    </table>
+
+    <h3 style="margin-top:40px">OCR — Optical Character Recognition</h3>
+    <p>OCR is a technology that converts <strong>images containing text</strong> (photos of documents, screenshots, scanned PDFs) into actual machine-readable text that can be processed by software.</p>
+
+    <div class="flow">
+      <div class="flow-step"><div class="step-num">STEP 1</div><div class="step-label">📷 Capture Image</div></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step"><div class="step-num">STEP 2</div><div class="step-label">🔍 Detect Text Regions</div></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step"><div class="step-num">STEP 3</div><div class="step-label">🔤 Recognize Characters</div></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step"><div class="step-num">STEP 4</div><div class="step-label">📝 Convert to Text</div></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step"><div class="step-num">STEP 5</div><div class="step-label">✅ Use in Workflow</div></div>
+    </div>
+
+    <h3 style="margin-top:32px">OCR Engines in UiPath</h3>
+    <p>UiPath supports multiple OCR engines. Each has strengths for different scenarios:</p>
+
+    <div class="grid-2">
+      <div class="card accent-green">
+        <h4>🔬 Google OCR (Tesseract)</h4>
+        <span class="tag tag-green">Free</span>
+        <span class="tag tag-blue">Local Processing</span>
+        <ul class="styled" style="margin-top:10px">
+          <li>Open-source engine (Tesseract v4.0)</li>
+          <li>Uses LSTM neural network for recognition</li>
+          <li>Processing done <strong>locally</strong> on your machine</li>
+          <li>Good for small text areas</li>
+          <li>Supports multiple languages</li>
+          <li>Free to use — comes with UiPath Studio</li>
+        </ul>
+      </div>
+      <div class="card accent-blue">
+        <h4>💻 Microsoft OCR (MODI)</h4>
+        <span class="tag tag-blue">Free</span>
+        <span class="tag tag-purple">Large Areas</span>
+        <ul class="styled" style="margin-top:10px">
+          <li>Microsoft Document Imaging OCR</li>
+          <li>Processing done locally</li>
+          <li>Better for <strong>larger text areas</strong></li>
+          <li>Warning: can cause memory leaks in loops</li>
+          <li>For loop use: run in separate invoked workflow with Isolated=true</li>
+          <li>Free — included with UiPath</li>
+        </ul>
+      </div>
+      <div class="card accent-amber">
+        <h4>☁️ Google Cloud OCR</h4>
+        <span class="tag tag-amber">Paid</span>
+        <span class="tag tag-blue">Cloud</span>
+        <ul class="styled" style="margin-top:10px">
+          <li>Uses Google Cloud Vision API</li>
+          <li>Image uploaded to Google servers — not local</li>
+          <li>Faster and more precise than Tesseract</li>
+          <li>Requires API key (free trial available)</li>
+          <li>Best for high-accuracy cloud workflows</li>
+        </ul>
+      </div>
+      <div class="card accent-purple">
+        <h4>🏆 ABBYY OCR</h4>
+        <span class="tag tag-purple">Licensed</span>
+        <span class="tag tag-green">Most Accurate</span>
+        <ul class="styled" style="margin-top:10px">
+          <li>Industry-leading accuracy</li>
+          <li>Supports 200+ languages including Asian scripts</li>
+          <li>Handles printed AND handwritten text</li>
+          <li>Zonal OCR for specific field extraction</li>
+          <li>Great for invoices, forms, receipts</li>
+          <li>Requires paid license from ABBYY / UiPath</li>
+        </ul>
+      </div>
+    </div>
+
+    <h3 style="margin-top:32px">Key OCR Properties (Tesseract)</h3>
+    <div class="card">
+      <table class="comp-table" style="margin:0">
+        <tr><th>Property</th><th>What it does</th></tr>
+        <tr><td><code style="color:var(--accent)">Scale</code></td><td>Enlarges the image before OCR. Higher = better accuracy for small text. Default: 2</td></tr>
+        <tr><td><code style="color:var(--accent)">Profile</code></td><td><strong>None</strong> = no preprocessing; <strong>Screen</strong> = for remote desktop; <strong>Scan</strong> = for scanned files</td></tr>
+        <tr><td><code style="color:var(--accent)">Invert</code></td><td>Inverts colors — use when text is light on dark background</td></tr>
+        <tr><td><code style="color:var(--accent)">Language</code></td><td>Language to use for recognition. Write "English" (full name)</td></tr>
+        <tr><td><code style="color:var(--accent)">ExtractWords</code></td><td>If checked: also returns the screen coordinates of each word found</td></tr>
+        <tr><td><code style="color:var(--accent)">AllowedChars</code></td><td>Only extract specific characters (e.g., digits only: "0123456789")</td></tr>
+      </table>
+    </div>
+
+    <h3 style="margin-top:32px">Data Extraction from Scanned Documents</h3>
+    <p>OCR is heavily used for processing scanned invoices, forms, and reports where data must be pulled and entered into another system automatically.</p>
+
+    <div class="flow">
+      <div class="flow-step"><div class="step-num">INPUT</div><div class="step-label">📄 Scanned Document / Image</div></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step"><div class="step-num">PROCESS</div><div class="step-label">🔍 Apply OCR</div></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step"><div class="step-num">EXTRACT</div><div class="step-label">📋 Pull Text Data</div></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step"><div class="step-num">ORGANIZE</div><div class="step-label">🗂️ Structure Data</div></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step"><div class="step-num">OUTPUT</div><div class="step-label">💾 Enter into App / DB</div></div>
+    </div>
+
+    <div class="grid-3" style="margin-top:20px">
+      <div class="card accent-blue">
+        <h4>📑 Invoice Processing</h4>
+        <p style="margin:0;font-size:13px">Auto-extract vendor name, amount, date from scanned invoices and enter into ERP systems.</p>
+      </div>
+      <div class="card accent-green">
+        <h4>📝 Form Automation</h4>
+        <p style="margin:0;font-size:13px">Read filled paper forms, extract field values, create digital records automatically.</p>
+      </div>
+      <div class="card accent-purple">
+        <h4>🗄️ Data Entry Systems</h4>
+        <p style="margin:0;font-size:13px">Digitize paper archives, extract tabular data, populate databases without manual entry.</p>
+      </div>
+    </div>
+
+    <div class="highlight-box danger" style="margin-top:24px">
+      <div class="box-title red">⚠️ OCR Limitations — Important for Exams</div>
+      <p>OCR is <strong>NOT 100% accurate</strong>. Accuracy depends on: image quality, font clarity, lighting, resolution, and whether the document is skewed. Always validate critical extracted data. Low-quality scans produce errors. Use image pre-processing (Scale, Invert, Profile) to improve results.</p>
+    </div>
+  </section>
+
+  <!-- FLASHCARDS -->
+  <section id="flashcards">
+    <div class="section-header">
+      <div class="section-icon icon-blue">🃏</div>
+      <div>
+        <div class="section-title">Flashcards</div>
+        <div class="section-subtitle">Click any card to flip it and reveal the answer</div>
+      </div>
+    </div>
+    <div class="fc-grid" id="fc-container"></div>
+  </section>
+
+  <!-- QUIZ -->
+  <section id="quiz">
+    <div class="section-header">
+      <div class="section-icon icon-green">🎯</div>
+      <div>
+        <div class="section-title">Practice Quiz</div>
+        <div class="section-subtitle">10 questions to test your understanding</div>
+      </div>
+    </div>
+    <div id="quiz-container"></div>
+    <div class="quiz-score" id="quiz-score">
+      <div class="score-num" id="score-display">0/10</div>
+      <p style="color:var(--muted); margin:8px 0 0">Quiz complete! Review your answers above.</p>
+      <button class="btn" onclick="resetQuiz()">Retake Quiz</button>
+    </div>
+  </section>
+
+  <!-- SUMMARY -->
+  <section class="section" id="summary">
+    <div class="section-header">
+      <div class="section-icon icon-amber">📌</div>
+      <div>
+        <div class="section-title">Quick Summary & Exam Tips</div>
+        <div class="section-subtitle">Everything you need to remember for your exam</div>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <div class="card accent-blue">
+        <h4>Unit 1 — Key Points</h4>
+        <ul class="styled">
+          <li>UI elements = visible interactive parts of any app</li>
+          <li>Element identification = locating elements precisely</li>
+          <li>UI Explorer = inspection tool for building selectors</li>
+          <li>Best attributes: id (most reliable), name, class</li>
+          <li>Avoid: auto-generated IDs, idx attribute</li>
+        </ul>
+      </div>
+      <div class="card accent-purple">
+        <h4>Unit 2 — Key Points</h4>
+        <ul class="styled">
+          <li>Selectors = XML fragments that identify UI elements</li>
+          <li>Static selector = fixed values, most reliable</li>
+          <li>Dynamic selector = uses variables or wildcards</li>
+          <li>* wildcard = matches zero or more characters</li>
+          <li>? wildcard = matches exactly one character</li>
+          <li>Full selector = includes top-level window</li>
+          <li>Partial selector = used inside containers</li>
+        </ul>
+      </div>
+      <div class="card accent-amber">
+        <h4>Unit 3 — Key Points</h4>
+        <ul class="styled">
+          <li>Dynamic elements change attributes at runtime</li>
+          <li>Fix with: wildcards, dynamic variables, anchors</li>
+          <li>Anchor = stable nearby element to locate a target</li>
+          <li>Fine-tune: remove excess attributes, shorten hierarchy</li>
+          <li>Never use idx > 2, never use full-wildcard attributes</li>
+        </ul>
+      </div>
+      <div class="card accent-green">
+        <h4>Unit 4 — Key Points</h4>
+        <ul class="styled">
+          <li>Screen scraping = extracting visible text from screens</li>
+          <li>Full Text = fastest, background, no layout</li>
+          <li>Native = medium, preserves structure</li>
+          <li>OCR = images/scans/Citrix, slowest, not 100% accurate</li>
+          <li>Tesseract = Google/free/local | MODI = Microsoft/local</li>
+          <li>ABBYY = most accurate, paid, 200+ languages</li>
+          <li>OCR steps: Capture → Detect → Recognize → Convert</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="highlight-box success" style="margin-top:24px">
+      <div class="box-title green">🎓 Module Project Reminder</div>
+      <p>The module project asks you to <strong>build an automation process that extracts screen or document data and enters it into an application using reliable UI selectors.</strong> This means you'll need to combine: UI element identification + well-tuned selectors + screen scraping or OCR + data entry via Type Into activities.</p>
+    </div>
+  </section>
+
+</div><!-- end main -->
+
+<script>
+// SCROLL NAV
+function scrollTo(id) {
+  const el = document.getElementById(id);
+  if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+  event.target.classList.add('active');
+  // Close sidebar on mobile
+  if (window.innerWidth < 900) document.getElementById('sidebar').classList.remove('open');
+}
+
+// FLASHCARDS DATA
+const flashcards = [
+  { q: "What is a UI Element?", a: "A visible, interactive component of a software application — like buttons, text boxes, dropdowns, and labels — that allows users or bots to interact with the system." },
+  { q: "What is a Selector in UiPath?", a: "An XML-based string that uniquely identifies a UI element by specifying its attributes and parent hierarchy. It's like a GPS address for a screen element." },
+  { q: "What does the * wildcard do?", a: "It matches zero or more characters. Example: id='user_*' matches user_001, user_abc, user_anything." },
+  { q: "What does the ? wildcard do?", a: "It matches exactly one character. Example: id='btn?' matches btn1, btn2, btn9 but NOT btn10." },
+  { q: "What is a Full Selector?", a: "A selector that contains the complete hierarchy from the top-level window down to the target element. Used in standalone activities outside containers." },
+  { q: "What is a Partial Selector?", a: "A selector that contains only the target element's info. Used inside containers like Attach Window or Open Browser that already specify the parent." },
+  { q: "What is Anchor-Based Automation?", a: "A technique where a stable nearby element (anchor) is used to locate a target element that has no stable attributes. Example: using a 'Username' label to find the input field next to it." },
+  { q: "What are the 3 Screen Scraping methods?", a: "1. Full Text — fastest, background, no layout preservation. 2. Native — medium speed, preserves structure. 3. OCR — for images/scans, slowest, not 100% accurate." },
+  { q: "What is OCR?", a: "Optical Character Recognition — technology that converts images or scanned documents containing text into machine-readable, editable text." },
+  { q: "Name 4 OCR engines in UiPath.", a: "1. Google OCR (Tesseract) — free, local. 2. Microsoft OCR (MODI) — free, local. 3. Google Cloud OCR — paid, cloud. 4. ABBYY OCR — most accurate, licensed." },
+  { q: "What is UI Explorer?", a: "A UiPath tool to inspect UI elements in any application, view their attributes, build and edit selectors, and validate that selectors correctly find the intended element." },
+  { q: "Why should you avoid the 'idx' attribute?", a: "idx is a positional index that changes if new elements are added or removed. It makes selectors fragile and break-prone. Only use it if the value is 1 or 2." },
+  { q: "What is a Dynamic UI Element?", a: "A UI element that changes its properties (like id or class) between executions — common in web apps that generate random IDs or tables that update." },
+  { q: "What does the Scale property do in OCR?", a: "It enlarges the image before OCR processing. Higher scale = better accuracy for small text. Default value is 2. Values between 0 and 1 shrink the image." },
+  { q: "When should you use OCR over Full Text?", a: "Use OCR when: the app is in a virtual/Citrix environment, the text is inside an image or scanned document, or neither Full Text nor Native methods can extract the text." },
+  { q: "What is Selector Fine-Tuning?", a: "The process of improving a selector to make it reliable — removing unnecessary attributes, using wildcards for dynamic values, shortening hierarchy, and preferring stable properties." },
+  { q: "What attributes are most reliable in selectors?", a: "id (most reliable if static), name, automationId, and class. Avoid volatile ones like auto-generated IDs and idx." },
+  { q: "What is the difference between Google OCR and Google Cloud OCR?", a: "Google OCR uses Tesseract locally on your machine (free). Google Cloud OCR uploads the image to Google servers for processing (requires API key, more accurate)." },
+  { q: "What is the OCR 4-step process?", a: "1. Capture image. 2. Detect text regions. 3. Recognize characters. 4. Convert to machine-readable text." },
+  { q: "Name 3 real-world OCR use cases.", a: "1. Invoice processing — extract vendor, amount, date. 2. Form automation — digitize paper forms. 3. Data entry — populate databases from scanned archives." },
+];
+
+const fcContainer = document.getElementById('fc-container');
+flashcards.forEach((card, i) => {
+  const fc = document.createElement('div');
+  fc.className = 'fc';
+  fc.innerHTML = `
+    <div class="fc-inner">
+      <div class="fc-front">
+        <div class="fc-label">QUESTION ${i+1} of ${flashcards.length}</div>
+        <div class="fc-question">${card.q}</div>
+        <div class="fc-hint">click to reveal answer</div>
+      </div>
+      <div class="fc-back">
+        <div class="fc-label">ANSWER</div>
+        <div class="fc-answer">${card.a}</div>
+      </div>
+    </div>
+  `;
+  fc.onclick = () => fc.classList.toggle('flipped');
+  fcContainer.appendChild(fc);
+});
+
+// QUIZ DATA
+const quizData = [
+  {
+    q: "What is the primary method UiPath uses to identify UI elements?",
+    opts: ["Image recognition", "Selectors (XML)", "Mouse coordinates", "Color matching"],
+    ans: 1, exp: "Selectors are XML-based strings that form the backbone of UI automation in UiPath."
+  },
+  {
+    q: "Which wildcard matches ZERO or MORE characters?",
+    opts: ["?", "#", "*", "&"],
+    ans: 2, exp: "The * wildcard matches any number of characters. Example: 'user_*' matches user_001, user_abc, etc."
+  },
+  {
+    q: "A Full Selector is used in activities that work...",
+    opts: ["Inside a container (Attach Window)", "Only with OCR", "Outside of any container scope", "Only with images"],
+    ans: 2, exp: "Full selectors include the entire hierarchy and are used in standalone activities outside containers."
+  },
+  {
+    q: "Which screen scraping method works in BACKGROUND without the app being visible?",
+    opts: ["OCR", "Native", "Full Text", "ABBYY"],
+    ans: 2, exp: "Full Text hooks into the rendering engine and can work in the background, making it the fastest method."
+  },
+  {
+    q: "Anchor-Based Automation is best used when...",
+    opts: ["The selector is too long", "The target element has no stable attributes", "OCR fails", "The app is in Citrix"],
+    ans: 1, exp: "Anchors help locate unstable target elements using a nearby stable element (like a label)."
+  },
+  {
+    q: "Which OCR engine in UiPath uses the Tesseract engine locally?",
+    opts: ["Microsoft OCR", "ABBYY Cloud OCR", "Google Cloud OCR", "Google OCR"],
+    ans: 3, exp: "Google OCR in UiPath uses the open-source Tesseract engine v4.0, processed locally on your machine for free."
+  },
+  {
+    q: "Why should you avoid auto-generated IDs in selectors?",
+    opts: ["They are too long", "They change each page load, breaking the automation", "They work only in Chrome", "They require admin access"],
+    ans: 1, exp: "Auto-generated IDs like 'btn_3821' change each time, making selectors that rely on them fragile and unreliable."
+  },
+  {
+    q: "Which scraping method PRESERVES the layout/position of text?",
+    opts: ["Full Text", "Native", "OCR", "None"],
+    ans: 1, exp: "Native scraping extracts text with its structure and position, while Full Text dumps all text without layout."
+  },
+  {
+    q: "What does the Scale property do in OCR activities?",
+    opts: ["Reduces image file size", "Enlarges image for better character recognition", "Changes the OCR engine language", "Inverts image colors"],
+    ans: 1, exp: "Scale enlarges the image before OCR processing. Higher values improve accuracy on small text. Default is 2."
+  },
+  {
+    q: "Which OCR engine is considered MOST ACCURATE and supports 200+ languages?",
+    opts: ["Google Tesseract", "Microsoft MODI", "ABBYY", "Google Cloud OCR"],
+    ans: 2, exp: "ABBYY OCR is industry-leading in accuracy, supports 200+ languages including Asian scripts and handwriting, but requires a paid license."
+  },
+];
+
+let scores = new Array(quizData.length).fill(null);
+const qContainer = document.getElementById('quiz-container');
+
+quizData.forEach((item, i) => {
+  const div = document.createElement('div');
+  div.className = 'quiz-q';
+  div.innerHTML = `
+    <p>Q${i+1}. ${item.q}</p>
+    <div class="quiz-options">
+      ${item.opts.map((o, j) => `
+        <button class="quiz-opt" onclick="answer(${i}, ${j}, this)">${String.fromCharCode(65+j)}. ${o}</button>
+      `).join('')}
+    </div>
+    <div class="quiz-feedback" id="fb-${i}"></div>
+  `;
+  qContainer.appendChild(div);
+});
+
+function answer(qi, selected, btn) {
+  if (scores[qi] !== null) return;
+  const item = quizData[qi];
+  const opts = btn.closest('.quiz-options').querySelectorAll('.quiz-opt');
+  opts.forEach((o, j) => {
+    o.disabled = true;
+    if (j === item.ans) o.classList.add('correct');
+    else if (j === selected) o.classList.add('wrong');
+  });
+  const fb = document.getElementById('fb-' + qi);
+  if (selected === item.ans) {
+    scores[qi] = 1;
+    fb.textContent = '✅ Correct! ' + item.exp;
+    fb.className = 'quiz-feedback show correct';
+  } else {
+    scores[qi] = 0;
+    fb.textContent = '❌ ' + item.exp;
+    fb.className = 'quiz-feedback show wrong';
+  }
+  if (scores.every(s => s !== null)) {
+    const total = scores.reduce((a, b) => a + b, 0);
+    document.getElementById('score-display').textContent = total + '/10';
+    document.getElementById('quiz-score').classList.add('show');
+  }
+}
+
+function resetQuiz() {
+  scores = new Array(quizData.length).fill(null);
+  document.getElementById('quiz-container').innerHTML = '';
+  document.getElementById('quiz-score').classList.remove('show');
+  quizData.forEach((item, i) => {
+    const div = document.createElement('div');
+    div.className = 'quiz-q';
+    div.innerHTML = `
+      <p>Q${i+1}. ${item.q}</p>
+      <div class="quiz-options">
+        ${item.opts.map((o, j) => `
+          <button class="quiz-opt" onclick="answer(${i}, ${j}, this)">${String.fromCharCode(65+j)}. ${o}</button>
+        `).join('')}
+      </div>
+      <div class="quiz-feedback" id="fb-${i}"></div>
+    `;
+    document.getElementById('quiz-container').appendChild(div);
+  });
+}
+
+// Animate progress bars on load
+setTimeout(() => {
+  document.querySelectorAll('.progress-fill').forEach(bar => {
+    const w = bar.style.width;
+    bar.style.width = '0';
+    setTimeout(() => bar.style.width = w, 100);
+  });
+}, 300);
+</script>
+</body>
+</html>
